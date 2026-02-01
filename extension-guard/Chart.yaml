@@ -1,0 +1,6 @@
+apiVersion: v2
+name: extension-guard
+description: Socket Extension Guard web application for package alert lookup
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

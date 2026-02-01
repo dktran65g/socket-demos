@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: extension-guard-chrome
+  repository: extension-guard
   tag: latest
   pullPolicy: IfNotPresent
 

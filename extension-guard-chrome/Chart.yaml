@@ -1,6 +1,0 @@
-apiVersion: v2
-name: extension-guard-chrome
-description: Socket Extension Guard Chrome web application for package alert lookup
-type: application
-version: 0.1.0
-appVersion: "1.0.0"
