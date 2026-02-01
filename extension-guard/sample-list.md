@@ -12,7 +12,7 @@ mdanidgdpmkimeiiojknlnekblgmpdll
 laankejkbhbdhmipfmgcngdelahlfoji
 ```
 
-## OpenVSX Plugin
+## OpenVSX Extensions
 
 ```
 pkg:vscode/ms-python/python@2025.16.0?repository_url=https://open-vsx.org
