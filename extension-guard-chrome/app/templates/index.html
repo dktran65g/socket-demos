@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Package Alert Lookup</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+    <style>
+        /* GitHub-style header */
+        .table thead th {
+            background: #f6f8fa;
+            color: #656d76;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            border: 1px solid #d1d9e0;
+            padding: 8px 16px;
+        }
+
+        table.dataTable {
+            width: 100% !important;
+            table-layout: auto;
+            border: 1px solid #d1d9e0;
+            border-collapse: collapse;
+        }
+
+        table.dataTable thead th,
+        table.dataTable tbody td {
+            box-sizing: border-box;
+            padding: 8px 16px;
+            text-align: center;
+            border: 1px solid #d1d9e0;
+            font-size: 14px;
+            color: #1f2328;
+            /* Only set MAX width - let content determine natural width up to this limit */
+            max-width: 150ch; /* Cap at 150 characters maximum */
+            min-width: auto; /* No minimum constraint - size based on content */
+            width: auto; /* Let DataTables calculate based on content */
+            /* Enable word wrapping only when content exceeds max-width */
+            white-space: nowrap; /* Start with nowrap, let long content wrap */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            overflow: hidden;
+        }
+
+        /* Left align specific columns */
+        table.dataTable thead th:nth-child(6), /* Severity */
+        table.dataTable tbody td:nth-child(6),
+        table.dataTable thead th:nth-child(7), /* Category */
+        table.dataTable tbody td:nth-child(7),
+        table.dataTable thead th:nth-child(8), /* Permission Type */
+        table.dataTable tbody td:nth-child(8),
+        table.dataTable thead th:nth-child(10), /* Alert Type */
+        table.dataTable tbody td:nth-child(10) {
+            text-align: left;
+        }
+
+        /* Note column (dynamic position - will be handled by DataTables columnDefs) */
+        .left-align {
+            text-align: left !important;
+        }
+
+        /* When content is too long, allow wrapping */
+        table.dataTable thead th:has-text-longer-than-150,
+        table.dataTable tbody td:has-text-longer-than-150 {
+            white-space: normal;
+        }
+
+        /* For columns that should never wrap regardless of length */
+        table.dataTable thead th:nth-child(2), /* Version */
+        table.dataTable tbody td:nth-child(2),
+        table.dataTable thead th:nth-child(4), /* Size */
+        table.dataTable tbody td:nth-child(4),
+        table.dataTable thead th:nth-child(6), /* Severity */
+        table.dataTable tbody td:nth-child(6) {
+            white-space: nowrap;
+            max-width: none; /* No limit for these specific columns */
+        }
+
+        .dt-center { text-align: center; }
+
+        /* Severity icons styling */
+        .severity-icon {
+            font-style: normal;
+            font-weight: bold;
+            margin-right: 8px;
+            font-size: 14px;
+            display: inline-block;
+            width: 16px;
+            text-align: center;
+        }
+
+        .severity-critical .severity-icon {
+            color: #ff4d4f;
+        }
+
+        .severity-high .severity-icon {
+            color: #fa8c16;
+        }
+
+        .severity-medium .severity-icon,
+        .severity-middle .severity-icon {
+            color: #fadb14;
+        }
+
+        .severity-low .severity-icon {
+            color: #8c8c8c;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        /* Socket logo styling */
+        .socket-logo {
+            height: 2.5rem;
+            width: auto;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+            color: #333;
+        }
+
+        .socket-shield {
+            height: 2.8rem; /* Slightly larger for the shield */
+            margin-right: 0.3rem; /* Less margin since it's followed by text logo */
+        }
+
+        .socket-logo:hover {
+            color: #007bff;
+        }
+
+        h1 .chakra-link {
+            text-decoration: none;
+            color: inherit;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .title-text {
+            font-size: 2.5rem;
+            line-height: 2.8rem;
+            vertical-align: middle;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container-fluid py-5">
+    <h1 class="mb-4">
+        <a class="chakra-link group css-m001ix" aria-label="Socket" href="/">
+            <svg clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="120 0 758 1000" aria-hidden="true" class="css-1km5kfu socket-logo socket-shield">
+                <linearGradient id="a" gradientTransform="matrix(755.939 0 0 1000 122.03 499.97)" gradientUnits="userSpaceOnUse" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0" stop-color="#f0a"></stop>
+                    <stop offset="1" stop-color="#8c50ff"></stop>
+                </linearGradient>
+                <path d="m309.906 170.343h355.43v653.648h-355.43z" fill="#fff"></path>
+                <path d="m122.03 465.44c0 246.666 157.434 456.53 377.69 534.53 109.84-38.788 204.467-110.833 271.395-203.758 67.352-93.197 106.855-207.303 106.855-330.772v-329.061l-378.114-136.409-377.689 136.409v329.061zm312.186-253.758h175.344l-53.716 182.864h95.491l-261.031 393.575 61.958-285.742h-103.733z" fill="url(#a)" fill-rule="nonzero"></path>
+            </svg>
+            <svg viewBox="55 0 155 68" fill="currentColor" aria-hidden="true" class="css-1sgdy34 socket-logo">
+                <path d="M68.5938 44.8708C70.953 48.479 75.3476 50.7457 80.575 50.7457C87.3751 50.7457 92.0473 46.7211 92.0936 40.8462C92.0936 35.8964 89.0867 32.8433 84.2757 31.0854L81.6389 30.114C78.1695 28.865 76.5504 27.9861 76.5504 25.9969C76.5504 24.054 78.6783 23.0825 80.945 23.0825C83.2118 23.0825 85.2472 24.0077 86.82 25.9044L91.2609 21.3247C88.4391 18.179 84.9234 16.7913 80.8988 16.7913C74.515 16.7913 69.7965 20.4458 69.7965 26.6445C69.7965 31.1317 72.6183 34.1848 77.8919 36.0352L80.6675 37.0067C83.9056 38.1169 85.2472 39.4121 85.2472 41.2625C85.2472 43.1592 83.4893 44.4544 80.8525 44.4544C78.1695 44.4544 75.3476 43.0204 73.7286 40.5686L68.5938 44.8708Z"></path>
+                <path d="M117.768 38.6257C117.768 31.8718 112.309 26.552 105.601 26.552C98.8937 26.552 93.4351 31.8718 93.4351 38.6257C93.4351 45.3796 98.8937 50.6994 105.601 50.6994C112.309 50.6994 117.768 45.3796 117.768 38.6257ZM99.8189 38.6257C99.8189 35.0637 102.271 32.4732 105.601 32.4732C108.932 32.4732 111.337 35.0637 111.337 38.6257C111.337 42.1877 108.932 44.7782 105.601 44.7782C102.271 44.7782 99.8189 42.1877 99.8189 38.6257Z"></path>
+                <path d="M142.239 44.0381L136.734 41.0775C135.809 43.2054 133.82 44.7782 131.275 44.7782C127.945 44.7782 125.4 42.1877 125.4 38.6257C125.4 35.0637 127.945 32.4732 131.275 32.4732C133.82 32.4732 135.809 34.046 136.734 36.174L142.239 33.2134C140.25 29.235 136.086 26.552 131.275 26.552C124.429 26.552 119.017 31.6405 119.017 38.6257C119.017 45.6109 124.429 50.6994 131.275 50.6994C136.086 50.6994 140.25 48.0164 142.239 44.0381Z"></path>
+                <path d="M144.459 50.1907H150.797V39.551L160.234 50.1907H168.052L156.764 37.4693L165.924 27.061H158.291L150.797 35.5727V15.4961H144.459V50.1907Z"></path>
+                <path d="M165.415 38.6257C165.415 45.9347 170.781 50.6994 177.673 50.6994C182.531 50.6994 186.278 48.6178 188.406 45.5184L183.687 42.0027C182.669 43.5755 180.588 44.917 177.72 44.917C174.666 44.917 171.937 43.2054 171.567 40.106H188.868C188.961 39.1346 188.961 38.4869 188.961 37.9318C188.961 30.4378 183.641 26.552 177.581 26.552C170.549 26.552 165.415 31.7793 165.415 38.6257ZM177.396 31.7793C179.755 31.7793 182.068 33.0746 182.623 35.8039H171.798C172.4 32.9821 175.037 31.7793 177.396 31.7793Z"></path>
+                <path d="M206.586 49.9601V44.3627C205.845 44.6403 205.013 44.779 203.995 44.779C201.266 44.779 200.063 43.6688 200.063 40.847V32.6128H206.586V27.0617H200.063V20.6316H193.725V27.0617H189.053V32.6128H193.725V42.096C193.725 47.7396 197.657 50.469 202.561 50.469C204.319 50.469 205.568 50.2839 206.586 49.9601Z"></path>
+                <path d="M0 31.6519C0 48.4253 10.7045 62.696 25.6804 68C33.1488 65.3624 39.5828 60.4633 44.1335 54.1445C48.713 47.8071 51.3989 40.0479 51.3989 31.6519V9.27582L25.6897 0L0.00927239 9.27582V31.6519H0ZM21.2266 14.3964H33.1488L29.4965 26.8312H35.9893L18.2409 53.5943L22.4536 34.1638H15.4004L21.2266 14.3964Z"></path>
+            </svg>
+        </a>
+        <span class="title-text">Package Alert Lookup</span>
+    </h1>
+    {% if api_token_form %}
+    <form method="POST" class="card p-4 mb-4 shadow-sm">
+        {{ api_token_form.hidden_tag() }}
+        <div class="mb-3">
+            {{ api_token_form.api_token.label(class="form-label") }}
+            {{ api_token_form.api_token(class="form-control", autocomplete="off") }}
+        </div>
+        <div class="mb-3">
+            {{ api_token_form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+    {% elif form %}
+    <form method="POST" class="card p-4 mb-4 shadow-sm">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.package_inputs.label(class="form-label") }}
+            {{ form.package_inputs(class="form-control", rows=5, placeholder="Examples:\npkg:chrome/extension-id@1.0.0\npkg:npm/package-name@1.2.3\nmy-extension@1.1.1\nmy-extension") }}
+        </div>
+        <div class="mb-3">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+    {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% if alert_rows and alert_rows|length > 0 %}
+    <div class="table-responsive">
+    <table id="alerts-table" class="table table-bordered table-hover align-middle display">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Version</th>
+                <th>Type</th>
+                <th>Size</th>
+                <th>Author</th>
+                <th>Severity</th>
+                <th>Category</th>
+                <th>Permission Type</th>
+                <th>File</th>
+                <th>Alert Type</th>
+                {% for key in prop_keys %}
+                    <th>{{ key|capitalize }}</th>
+                {% endfor %}
+                <th>Error</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in alert_rows %}
+            <tr>
+                <td>{{ row['name'] }}</td>
+                <td>{{ row['version'] }}</td>
+                <td>{{ row['type'] }}</td>
+                <td>{{ row['size'] }}</td>
+                <td>{{ row['author'] }}</td>
+                <td class="severity-{{ row['severity']|lower }}">
+                    {% if row['severity']|lower == 'critical' %}
+                        <span class="severity-icon">▲</span>Critical
+                    {% elif row['severity']|lower == 'high' %}
+                        <span class="severity-icon">◆</span>High
+                    {% elif row['severity']|lower == 'medium' or row['severity']|lower == 'middle' %}
+                        <span class="severity-icon">■</span>Medium
+                    {% elif row['severity']|lower == 'low' %}
+                        <span class="severity-icon">●</span>Low
+                    {% else %}
+                        <span class="severity-icon">?</span>{{ row['severity']|capitalize }}
+                    {% endif %}
+                </td>
+                <td>{{ row['category'] }}</td>
+                <td>{{ row['permissionType'] }}</td>
+                <td>{{ row['file'] }}</td>
+                <td>{{ row['alert_type'] }}</td>
+                {% for key in prop_keys %}
+                    <td>{% if row['props'] and row['props'].get(key) %}{{ row['props'][key] }}{% else %}-{% endif %}</td>
+                {% endfor %}
+                <td>{% if row.get('error') %}<span class="text-danger">{{ row['error'] }}<br><small>{{ row['inputPurl'] }}</small></span>{% else %}-{% endif %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% endif %}
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        if ($('#alerts-table').length && !$.fn.DataTable.isDataTable('#alerts-table')) {
+            // Custom sorting for severity levels
+            $.fn.dataTable.ext.type.order['severity-pre'] = function (data) {
+                // Handle both HTML content and plain text
+                var severityText = '';
+                if (typeof data === 'string') {
+                    // If it's HTML, extract text content
+                    var temp = $('<div>').html(data);
+                    severityText = temp.text().trim();
+                } else {
+                    severityText = String(data).trim();
+                }
+
+                // Remove icon and get just the severity level
+                severityText = severityText.replace(/^[▲◆■●?]\s*/, '');
+
+                // Map severity levels to sort order (lower number = higher priority)
+                var severityOrder = {
+                    'Critical': 1,
+                    'High': 2,
+                    'Medium': 3,
+                    'Middle': 3, // Handle both Medium and Middle
+                    'Low': 4
+                };
+
+                return severityOrder[severityText] || 999;
+            };
+
+            // Calculate which columns to hide by default
+            var columnsToHide = [];
+            var table = document.getElementById('alerts-table');
+            var headers = table.getElementsByTagName('thead')[0].getElementsByTagName('th');
+
+            // Define the columns we want to keep visible
+            var visibleColumns = ['name', 'version', 'type', 'size', 'severity', 'category', 'permission type', 'alert type', 'note'];
+
+            for (var i = 0; i < headers.length; i++) {
+                var headerText = headers[i].textContent.toLowerCase().trim();
+                if (!visibleColumns.includes(headerText)) {
+                    columnsToHide.push(i);
+                }
+            }
+
+            var table = $('#alerts-table').DataTable({
+                colReorder: true,
+                dom: 'Blfrtip', // Add 'l' for length menu
+                buttons: [
+                    {
+                        extend: 'colvis',
+                        columns: ':not(:last-child)',
+                        text: 'Column visibility',
+                        collectionLayout: 'fixed two-column',
+                        postfixButtons: ['colvisRestore']
+                    }
+                ],
+                pageLength: 50, // Default to 50 entries
+                lengthMenu: [[50, 100, 200, -1], [50, 100, 200, "All"]], // Dropdown options
+                order: [[5, 'asc']], // Default sort by severity column (index 5) ascending (Critical first)
+                columnDefs: [
+                    {
+                        targets: '_all',
+                        className: 'dt-center'
+                    },
+                    {
+                        // Left align specific columns
+                        targets: [5, 6, 7, 9], // Severity, Category, Permission Type, Alert Type
+                        className: 'left-align'
+                    },
+                    {
+                        targets: [5], // Severity column
+                        type: 'severity'
+                    },
+                    {
+                        targets: columnsToHide,
+                        visible: false
+                    }
+                ],
+                scrollX: false,
+                autoWidth: true, /* Let DataTables calculate column widths automatically */
+                searching: true,
+                responsive: false, /* Turn off responsive to let natural sizing work */
+                // Custom column width calculation
+                initComplete: function() {
+                    var api = this.api();
+                    var headers = api.columns().header();
+
+                    // Find and left-align the Note column (dynamic position)
+                    headers.each(function(header, index) {
+                        var headerText = $(header).text().toLowerCase().trim();
+                        if (headerText === 'note') {
+                            api.column(index).nodes().to$().addClass('left-align');
+                        }
+                    });
+
+                    // After DataTables initializes, check each cell for long content
+                    api.cells().every(function() {
+                        var cell = $(this.node());
+                        var text = cell.text();
+                        if (text.length > 150) {
+                            cell.css('white-space', 'normal');
+                        }
+                    });
+                }
+            });
+        }
+    });
+    </script>
+</div>
+</body>
+</html>

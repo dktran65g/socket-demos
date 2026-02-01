@@ -1,0 +1,6 @@
+Flask
+flask-wtf
+wtforms
+socketdev
+python-dotenv
+gunicorn

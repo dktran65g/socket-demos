@@ -1,0 +1,27 @@
+replicaCount: 1
+
+image:
+  repository: extension-guard-chrome
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  name: extension-guard
+  type: ClusterIP
+  port: 81
+  targetPort: 81
+
+container:
+  port: 81
+
+env:
+  FLASK_SECRET_KEY: "change-this-secret-in-production"
+  # SOCKET_SECURITY_API_KEY: "" # Set via secret or at runtime
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
